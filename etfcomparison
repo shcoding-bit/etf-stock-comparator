@@ -1,0 +1,63 @@
+from yahooquery import Ticker
+#defining a function named get_top_holdings
+#it takes one input, ticker, which is a string like "SPY" or "VTI" (the ETF symbol)
+def get_top_holdings(ticker):
+#this creates a Ticker object from the yahooquery library
+#its like saying: go get all the data about this fund ticker
+#example: Ticker("SPY") fetches info about the SPY ETF
+    t = Ticker(ticker)
+#t.fund_holding_info is a dictionary that contains all the holdings data.
+# .get(ticker, {}) tries to get the data for your specific ETF (e.g. "SPY").
+# If nothing is found, it returns an empty dictionary {} to avoid crashing.
+    info = t.fund_holding_info.get(ticker, {})
+#Now we’re looking inside the ETF data to get the actual list of holdings.
+# This line grabs the list of stocks the ETF is made of.
+# If it doesn’t exist, it safely returns an empty list [].
+    holdings = info.get('holdings', [])
+#If holdings is empty or missing, this warns the user and exits the function early.
+#This avoids running into errors later when trying to use missing data.
+    if not holdings:
+        print(f"No holdings found for {ticker}")
+        return []
+#This is a list comprehension that loops through the first 10 items in holdings.
+#Each h is a dictionary like {'symbol': 'AAPL', ...}
+#It grabs the 'symbol' (the stock ticker), makes it uppercase (just for consistency), and returns a list of 10 tickers.
+    return [h['symbol'].upper() for h in holdings[:10]]
+
+#def means we are defining a function called compare_holdings
+#it takes two inputs (parameters): etf1_holdings and etf2_holdings
+def compare_holdings(etf1_holdings, etf2_holdings):
+
+#we convert each list into a set
+#sets are like lists but only keep unique items and support special operations like intersections 
+    set1 = set(etf1_holdings)
+    set2 = set(etf2_holdings)
+
+#so here, common will have sticks that are in both ETFs
+#the - operator here means set difference.
+#only_in_etf1 means stocks in set1 but not in set2
+#only_in_etf2 means stocks in set2 but not in set1
+    common = set1 & set2
+    only_in_etf1 = set1 - set2
+    only_in_etf2 = set2 - set1
+
+#outputs the results
+    print("Common Stocks:", common)
+    print("Only in ETF 1:", only_in_etf1)
+    print("Only in ETF 2:", only_in_etf2)
+
+# Prompt the user to enter the ETF ticker (e.g., "SPY"), remove extra spaces, and convert it to uppercase
+etf1 = input("Enter the first ETF ticker : ").strip().upper()
+etf2 = input("Enter the second ETF ticker : ").strip().upper()
+
+# Call get_top_holdings() with the first ticker to fetch its top 10 holdings
+etf1_holdings = get_top_holdings(etf1)
+etf2_holdings = get_top_holdings(etf2)
+
+# If both ETF holding lists were successfully fetched (not empty), compare them
+if etf1_holdings and etf2_holdings:
+    # Call compare_holdings() to find similarities and differences
+    compare_holdings(etf1_holdings, etf2_holdings)
+else:
+    # If one or both holding lists are empty, inform the user
+    print("Could not fetch holdings for one or both ETFs.")
